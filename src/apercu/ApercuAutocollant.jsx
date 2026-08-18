@@ -35,7 +35,6 @@ export function ApercuAutocollant() {
         </p>
         <p className="nav">
           <a href="/">Site</a>
-          <a href="/apercu">Raccords</a>
         </p>
       </header>
 

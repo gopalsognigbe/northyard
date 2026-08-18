@@ -26,10 +26,11 @@ function unlockFilm(film) {
 function clipAlpha(p, start, end, fade, first, last) {
   const inStart = first ? 0 : start - fade / 2
   const inEnd = first ? start : start + fade / 2
-  const outStart = last ? end : end - fade / 2
-  const outEnd = last ? 1 : end + fade / 2
   if (p < inStart) return 0
   if (p < inEnd) return (p - inStart) / Math.max(0.001, inEnd - inStart)
+  if (last) return 1
+  const outStart = end - fade / 2
+  const outEnd = end + fade / 2
   if (p < outStart) return 1
   if (p < outEnd) return 1 - (p - outStart) / Math.max(0.001, outEnd - outStart)
   return 0

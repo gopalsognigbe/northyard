@@ -36,7 +36,7 @@ The bottle is filmed once (mp4 all-intra). The site only seeks `currentTime`. Ne
 - Intro: `public/film/glissage.mp4` (auto, ×2)
 - Scrub takes: `hero.mp4`, `spin.mp4`, `shift.mp4` (1920×1080, 30 fps, 8 s each)
 - Locked reference take: `public/film/plan-01.mp4` (studio only — never overwrite)
-- Allocation form: bordeaux sticker overlay at end of scrub (`/apercu` for variants)
+- Allocation form: bordeaux sticker overlay at end of scrub
 
 ## Constraints
 

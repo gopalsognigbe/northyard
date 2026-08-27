@@ -11,14 +11,6 @@
   will-change: transform;
 }
 
-.ask-sticker.is-preview.is-floating .ask-sticker__sheet {
-  animation: sticker-float 5.2s ease-in-out infinite;
-}
-
-.ask-sticker.is-preview.is-floating .ask-sticker__tape {
-  animation: tape-sway 5.2s ease-in-out infinite;
-}
-
 @keyframes sticker-float {
   0%,
   100% {
@@ -213,10 +205,6 @@
   font-style: italic;
 }
 
-.ask-sticker.is-preview {
-  pointer-events: none;
-}
-
 @media (max-width: 860px) {
   .ask-sticker {
     padding: 0.25rem 0.25rem 0.35rem;
@@ -275,8 +263,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ask-sticker.is-floating .ask-sticker__sheet,
-  .ask-sticker.is-floating .ask-sticker__tape,
-  .ask-sticker.is-preview.is-floating .ask-sticker__sheet {
+  .ask-sticker.is-floating .ask-sticker__tape {
     animation: none;
   }
 

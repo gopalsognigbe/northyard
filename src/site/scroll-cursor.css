@@ -1,0 +1,126 @@
+.site.has-custom-cursor,
+.site.has-custom-cursor * {
+  cursor: none !important;
+}
+
+.scroll-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: transform;
+}
+
+.scroll-cursor.is-visible {
+  opacity: 1;
+}
+
+.scroll-cursor__lie,
+.scroll-cursor__link-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.scroll-cursor__lie {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.scroll-cursor__lie-label {
+  font-size: 0.68rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.scroll-cursor__lie-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18rem;
+}
+
+.scroll-cursor__lie-chevron {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-right: 1px solid var(--oxblood);
+  border-bottom: 1px solid var(--oxblood);
+  transform: rotate(45deg);
+  animation: scroll-cursor-lie-pulse 1.6s ease-in-out infinite;
+}
+
+.scroll-cursor__lie-chevron:last-child {
+  animation-delay: 0.22s;
+  opacity: 0.55;
+}
+
+.scroll-cursor__link-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+}
+
+.scroll-cursor[data-mode='link'] .scroll-cursor__lie {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+}
+
+.scroll-cursor[data-mode='link'] .scroll-cursor__link-dot {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Sur la carte bordeaux : point crème */
+.scroll-cursor[data-surface='card'][data-mode='link'] .scroll-cursor__link-dot {
+  background: var(--paper);
+}
+
+.scroll-cursor[data-surface='card'] .scroll-cursor__lie-label {
+  color: var(--paper);
+}
+
+.scroll-cursor[data-surface='card'] .scroll-cursor__lie-chevron {
+  border-right-color: var(--paper);
+  border-bottom-color: var(--paper);
+}
+
+@keyframes scroll-cursor-lie-pulse {
+  0%,
+  100% {
+    transform: rotate(45deg) translateY(0);
+    opacity: 0.45;
+  }
+
+  50% {
+    transform: rotate(45deg) translateY(2px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cursor {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .scroll-cursor {
+    display: none;
+  }
+}

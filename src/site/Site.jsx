@@ -6,41 +6,10 @@ import '@fontsource/eb-garamond/800.css'
 import 'lenis/dist/lenis.css'
 import { useFilmScrub } from './useFilmScrub.js'
 import { AskSticker } from './AskSticker.jsx'
+import { ScrollCursor } from './ScrollCursor.jsx'
+import { useLocale } from './i18n.js'
 import './ask-sticker.css'
 import './site.css'
-
-const DEPTH_NOTES = [
-  {
-    peak: 0.1,
-    side: 'left',
-    title: 'Vendangé à la main',
-    body: 'Schiste de Faugères. Mis en bouteille au domaine.',
-  },
-  {
-    peak: 0.23,
-    side: 'right',
-    title: '2023',
-    body: 'Rouge de Fontanille. 75 cl · 13,5% vol.',
-  },
-  {
-    peak: 0.42,
-    side: 'left',
-    title: 'La colline a donné son nom à la cuvée.',
-    body: 'On y entre peu, on y reste longtemps — le vin suit ce rythme.',
-  },
-  {
-    peak: 0.54,
-    side: 'left',
-    title: 'Restanques de schiste',
-    body: 'Les racines cherchent la faille. Le schiste casse la lumière.',
-  },
-  {
-    peak: 0.68,
-    side: 'left',
-    title: 'Papier vergé, gravure, filet lie-de-vin.',
-    body: 'L’étiquette ne dit rien d’autre.',
-  },
-]
 
 function useReducedMotion() {
   return useMemo(
@@ -60,80 +29,107 @@ export function Site() {
   const ask = useRef(null)
   const reduced = useReducedMotion()
   const [sent, setSent] = useState(false)
+  const { locale, setLocale, copy } = useLocale()
 
   useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask, reduced })
 
   return (
     <div className="site">
+      {!reduced ? <ScrollCursor label={copy.cursorScroll} /> : null}
       <a className="skip" href="#allocation">
-        Aller à la demande d’allocation
+        {copy.skip}
       </a>
 
       <header className="mast">
         <a className="wordmark" href="#top">
           Domaine Laclau
         </a>
-        <a
-          className="mast-cta"
-          href="#allocation"
-          onClick={(event) => {
-            event.preventDefault()
-            wrap.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
-          }}
-        >
-          Demander une allocation
-        </a>
+        <div className="mast-end">
+          <div className="lang" role="group" aria-label={locale === 'fr' ? 'Langue' : 'Language'}>
+            <button
+              type="button"
+              className={locale === 'fr' ? 'lang__btn is-active' : 'lang__btn'}
+              lang="fr"
+              aria-pressed={locale === 'fr'}
+              onClick={() => setLocale('fr')}
+            >
+              FR
+            </button>
+            <span className="lang__sep" aria-hidden="true">
+              /
+            </span>
+            <button
+              type="button"
+              className={locale === 'en' ? 'lang__btn is-active' : 'lang__btn'}
+              lang="en"
+              aria-pressed={locale === 'en'}
+              onClick={() => setLocale('en')}
+            >
+              EN
+            </button>
+          </div>
+          <a
+            className="mast-cta"
+            href="#allocation"
+            onClick={(event) => {
+              event.preventDefault()
+              wrap.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+            }}
+          >
+            {copy.mastCta}
+          </a>
+        </div>
       </header>
 
       <main id="top">
         <section
           ref={wrap}
           className={reduced ? 'hero hero-static' : 'hero'}
-          aria-label="Fontanille, de la bouteille au schiste"
+          aria-label={copy.heroAria}
         >
           <div className="hero-pin">
             <div className="hero-stage">
               <video
                 ref={intro}
-              className="intro-film"
-              src="/film/glissage.mp4?v=1"
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              aria-hidden="true"
-            />
-            <video
-              ref={video}
-              className="hero-film"
-              src="/film/hero.mp4?v=1"
-              poster="/film/hero-poster.jpg"
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              aria-hidden="true"
-            />
-            <video
-              ref={spin}
-              className="cuvee-film"
-              src="/film/spin.mp4?v=1"
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              aria-hidden="true"
-            />
-            <video
-              ref={shift}
-              className="land-film"
-              src="/film/shift.mp4?v=1"
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              aria-hidden="true"
-            />
+                className="intro-film"
+                src="/film/glissage.mp4?v=1"
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                aria-hidden="true"
+              />
+              <video
+                ref={video}
+                className="hero-film"
+                src="/film/hero.mp4?v=1"
+                poster="/film/hero-poster.jpg"
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                aria-hidden="true"
+              />
+              <video
+                ref={spin}
+                className="cuvee-film"
+                src="/film/spin.mp4?v=1"
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                aria-hidden="true"
+              />
+              <video
+                ref={shift}
+                className="land-film"
+                src="/film/shift.mp4?v=1"
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                aria-hidden="true"
+              />
             </div>
             <div className="hero-copy">
               <p ref={lineA} className="hero-name">
@@ -141,8 +137,13 @@ export function Site() {
               </p>
             </div>
             <div ref={hall} className="depth-hall" aria-hidden={reduced ? true : undefined}>
-              {DEPTH_NOTES.map((note) => (
-                <article key={note.title} className="depth-note" data-peak={note.peak} data-side={note.side}>
+              {copy.depthNotes.map((note) => (
+                <article
+                  key={`${note.peak}-${note.side}`}
+                  className="depth-note"
+                  data-peak={note.peak}
+                  data-side={note.side}
+                >
                   <h2>{note.title}</h2>
                   <p>{note.body}</p>
                 </article>
@@ -150,8 +151,8 @@ export function Site() {
             </div>
             {reduced ? (
               <ul className="depth-still">
-                {DEPTH_NOTES.map((note) => (
-                  <li key={note.title}>
+                {copy.depthNotes.map((note) => (
+                  <li key={`${note.peak}-${note.side}`}>
                     <strong>{note.title}</strong>
                     <span>{note.body}</span>
                   </li>
@@ -159,10 +160,10 @@ export function Site() {
               </ul>
             ) : null}
             <aside ref={ask} className="ask-film" id="allocation" aria-labelledby="ask-title">
-              <AskSticker variant="bordeaux" sent={sent} onSubmit={() => setSent(true)} />
+              <AskSticker variant="bordeaux" copy={copy.ask} sent={sent} onSubmit={() => setSent(true)} />
             </aside>
-            <p className="hero-hint">{reduced ? 'Faugères, Languedoc.' : 'Descendez.'}</p>
-            <p className="pin-colophon">Domaine Laclau · Fontanille · AOP Faugères</p>
+            <p className="hero-hint">{reduced ? copy.heroHintReduced : copy.heroHint}</p>
+            <p className="pin-colophon">{copy.colophon}</p>
           </div>
         </section>
       </main>

@@ -3,7 +3,6 @@
   width: 100%;
   padding: 0.35rem 0.35rem 0.45rem;
   transform-origin: 50% 18%;
-  filter: drop-shadow(0 22px 38px rgb(22 18 15 / 0.34)) drop-shadow(0 6px 14px rgb(22 18 15 / 0.18));
 }
 
 .ask-sticker__sheet {
@@ -207,27 +206,26 @@
 
 @media (max-width: 860px) {
   .ask-sticker {
-    padding: 0.25rem 0.25rem 0.35rem;
-    filter: drop-shadow(0 16px 28px rgb(22 18 15 / 0.3)) drop-shadow(0 4px 10px rgb(22 18 15 / 0.16));
+    padding: 0.2rem 0.2rem 0.3rem;
   }
 
   .ask-sticker__body {
-    padding: 1.1rem 1.15rem 1.25rem;
+    padding: 1.05rem 1.1rem 1.2rem;
   }
 
   .ask-sticker__body h2 {
-    font-size: clamp(1.45rem, 6.8vw, 1.85rem);
+    font-size: clamp(1.4rem, 6.5vw, 1.8rem);
   }
 
   .ask-sticker__lede {
-    margin-bottom: 0.95rem;
-    font-size: 0.98rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.95rem;
     max-width: none;
   }
 
   .ask-sticker__form {
     grid-template-columns: 1fr;
-    gap: 0.65rem;
+    gap: 0.6rem;
   }
 
   .ask-sticker__form label {
@@ -237,27 +235,27 @@
   .ask-sticker__form input,
   .ask-sticker__form textarea {
     font-size: 16px;
-    min-height: 2.75rem;
-    padding-top: 0.45rem;
-    padding-bottom: 0.45rem;
+    min-height: 2.7rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
   }
 
   .ask-sticker__form textarea {
-    min-height: 5.5rem;
+    min-height: 4.75rem;
     resize: vertical;
   }
 
   .ask-sticker__form button {
     width: 100%;
-    min-height: 2.85rem;
+    min-height: 2.8rem;
     justify-self: stretch;
     text-align: center;
   }
 
   .ask-sticker__tape {
-    width: 3.8rem;
-    height: 1.15rem;
-    margin-left: -1.9rem;
+    width: 3.6rem;
+    height: 1.1rem;
+    margin-left: -1.8rem;
   }
 }
 

@@ -83,6 +83,18 @@ function setLane(el, lane, align) {
   if (align === 'inner') el.style.textAlign = lane === 'left' ? 'right' : 'left'
 }
 
+function isStackViewport() {
+  return window.matchMedia('(max-width: 1280px), (max-height: 700px)').matches
+}
+
+function isNarrowViewport() {
+  return window.matchMedia('(max-width: 860px)').matches
+}
+
+function isCompactViewport() {
+  return window.matchMedia('(max-width: 1280px)').matches
+}
+
 function setDepthNote(el, p, visible) {
   const peak = Number(el.dataset.peak)
   const side = el.dataset.side === 'right' ? 'right' : 'left'
@@ -95,26 +107,26 @@ function setDepthNote(el, p, visible) {
     if (d < 0) opacity = Math.min(1, (d + 1.05) / 0.42)
     else opacity = Math.max(0, 1 - d / 1.05)
   }
-  const narrow = window.matchMedia('(max-width: 860px)').matches
+  const narrow = isNarrowViewport() || isStackViewport()
   const scale = narrow ? 0.72 + approach * 0.28 : 0.38 + approach * 0.62
   const rest = 18
   const far = 28
   const inner = rest + (far - rest) * (1 - approach)
   const xVw = narrow ? 0 : side === 'left' ? -inner : inner
-  const yVh = narrow ? 22 : 6 + approach * 12
+  const yVh = narrow ? 18 : 6 + approach * 12
   if (!narrow) {
     const bottleX = bottleCenterVw(p)
     const bottleHalf = 14
     const gap = side === 'left' ? bottleX - bottleHalf - xVw : xVw - (bottleX + bottleHalf)
     if (gap < 5) opacity *= Math.max(0, gap / 5)
   }
-  // Sur mobile, une seule note nette à la fois (évite la pile coincée)
+  // Viewport étroit : une seule note nette à la fois (évite la pile coincée)
   if (narrow && opacity > 0 && Math.abs(d) > 0.55) opacity *= 0.35
   setLane(el, side, 'inner')
   gsap.set(el, {
     left: '50%',
     right: 'auto',
-    top: narrow ? '58%' : '42%',
+    top: narrow ? '52%' : '42%',
     bottom: 'auto',
     xPercent: narrow ? -50 : side === 'left' ? -100 : 0,
     yPercent: -50,
@@ -169,9 +181,18 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
       else if (nameEl) gsap.set(nameEl, { autoAlpha: 1 })
       notes.forEach((el) => gsap.set(el, { autoAlpha: 0 }))
       if (askEl) {
-        gsap.set(askEl, { autoAlpha: 1, clearProps: 'transform' })
-        askEl.classList.add('is-live', 'is-center')
-        askEl.classList.remove('is-left', 'is-right')
+        const mobile = isNarrowViewport()
+        gsap.set(askEl, {
+          autoAlpha: 1,
+          xPercent: mobile ? -50 : 0,
+          yPercent: mobile ? 0 : -50,
+          x: 0,
+          y: 0,
+        })
+        askEl.classList.add('is-live')
+        askEl.classList.toggle('is-center', mobile)
+        askEl.classList.toggle('is-right', !mobile)
+        askEl.classList.remove('is-left')
       }
       return undefined
     }
@@ -241,12 +262,16 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
     }
 
     const applyFrame = (p, live) => {
-      const compact = window.matchMedia('(max-width: 1100px), (max-height: 820px)').matches
-      const lane = compact ? 'center' : copyLane(p)
+      const stack = isStackViewport()
+      const compact = isCompactViewport()
       const askShow = live ? Math.min(1, Math.max(0, (p - 0.78) / 0.1)) : 0
       const scrubClear = askShow > 0.08
       const pin = root.querySelector('.hero-pin')
+      const lane = bottleLane(p)
       pin?.classList.toggle('is-asking', scrubClear)
+      pin?.classList.toggle('is-stack', stack)
+      pin?.classList.toggle('is-compact', compact)
+      if (pin) pin.dataset.bottle = lane
 
       if (nameWrap) {
         setLane(nameWrap, compact ? 'left' : copyLane(p))
@@ -268,24 +293,43 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
       notes.forEach((el) => setDepthNote(el, p, live && !scrubClear && p < 0.78))
       if (askEl) {
         const sticker = askEl.querySelector('.ask-sticker')
-        askEl.classList.toggle('is-left', lane === 'left')
-        askEl.classList.toggle('is-right', lane === 'right')
-        askEl.classList.toggle('is-center', lane === 'center')
-        askEl.style.textAlign = lane === 'right' ? 'right' : 'left'
-        gsap.set(askEl, { autoAlpha: askShow, x: 0, y: 0 })
+        const mobile = isNarrowViewport()
+        askEl.classList.toggle('is-center', mobile)
+        askEl.classList.toggle('is-right', !mobile)
+        askEl.classList.remove('is-left')
+        askEl.style.textAlign = 'left'
+        gsap.set(askEl, {
+          autoAlpha: askShow,
+          xPercent: mobile ? -50 : 0,
+          yPercent: mobile ? 0 : -50,
+          x: 0,
+          y: 0,
+        })
         if (sticker) {
           const peel = askShow * askShow
-          const mobileScale = compact ? 0.84 + peel * 0.1 : 0.9 + peel * 0.1
           gsap.set(sticker, {
-            rotation: compact ? -3 + peel * 2.5 : -8 + peel * 5.5,
-            scale: mobileScale,
+            rotation: mobile ? -2.5 + peel * 2 : -8 + peel * 5.5,
+            scale: mobile ? 0.88 + peel * 0.1 : 0.9 + peel * 0.1,
             transformOrigin: '50% 18%',
             force3D: true,
           })
         }
         askEl.classList.toggle('is-live', askShow > 0.35)
-        setStickerFloat(askShow > 0.55 && !compact)
+        setStickerFloat(askShow > 0.55 && !mobile && !compact)
       }
+
+      // Cadrage cover : suivre la bouteille pour qu’elle reste dans le cadre
+      let pos = '50% 42%'
+      if (lane === 'right') pos = compact ? '70% 44%' : '78% 42%'
+      else if (lane === 'left') pos = compact ? '32% 44%' : '22% 42%'
+      else if (compact) pos = '50% 44%'
+
+      const frameEls = introEl ? [introEl, ...clips.map((c) => c.el)] : clips.map((c) => c.el)
+      frameEls.forEach((el) => {
+        el.style.objectFit = 'cover'
+        el.style.objectPosition = pos
+      })
+
       clips.forEach((clip, i) => {
         if (!live) {
           gsap.set(clip.el, { autoAlpha: 0 })
@@ -298,10 +342,15 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
           if (Math.abs(clip.el.currentTime - want) > 0.04) clip.el.currentTime = want
         }
       })
+
       const hint = root.querySelector('.hero-hint')
       if (hint) {
         const showHint =
-          live && !scrubClear && p < 0.14 ? 1 : live && !scrubClear ? Math.max(0, 1 - (p - 0.14) / 0.06) : 0
+          live && !scrubClear && !compact && p < 0.14
+            ? 1
+            : live && !scrubClear && !compact
+              ? Math.max(0, 1 - (p - 0.14) / 0.06)
+              : 0
         gsap.set(hint, { autoAlpha: showHint })
       }
     }
@@ -405,12 +454,19 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
     window.addEventListener('wheel', skipIntro, { passive: true, once: true })
     window.addEventListener('touchmove', skipIntro, { passive: true, once: true })
 
+    const onResize = () => {
+      ScrollTrigger.refresh()
+      if (introDone) applyFrame(proxy.t, true)
+    }
+    window.addEventListener('resize', onResize)
+
     return () => {
       window.clearTimeout(introSafety)
       window.removeEventListener('pointerdown', onPointer)
       window.removeEventListener('keydown', onPointer)
       window.removeEventListener('wheel', skipIntro)
       window.removeEventListener('touchmove', skipIntro)
+      window.removeEventListener('resize', onResize)
       if (introEl) {
         introEl.removeEventListener('timeupdate', syncIntroTitle)
         introEl.removeEventListener('ended', finishIntro)

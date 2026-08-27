@@ -95,24 +95,26 @@ function setDepthNote(el, p, visible) {
     if (d < 0) opacity = Math.min(1, (d + 1.05) / 0.42)
     else opacity = Math.max(0, 1 - d / 1.05)
   }
-  const narrow = window.matchMedia('(max-width: 700px)').matches
-  const scale = 0.38 + approach * 0.62
+  const narrow = window.matchMedia('(max-width: 860px)').matches
+  const scale = narrow ? 0.72 + approach * 0.28 : 0.38 + approach * 0.62
   const rest = 18
   const far = 28
   const inner = rest + (far - rest) * (1 - approach)
   const xVw = narrow ? 0 : side === 'left' ? -inner : inner
-  const yVh = narrow ? 16 : 6 + approach * 12
+  const yVh = narrow ? 22 : 6 + approach * 12
   if (!narrow) {
     const bottleX = bottleCenterVw(p)
     const bottleHalf = 14
     const gap = side === 'left' ? bottleX - bottleHalf - xVw : xVw - (bottleX + bottleHalf)
     if (gap < 5) opacity *= Math.max(0, gap / 5)
   }
+  // Sur mobile, une seule note nette à la fois (évite la pile coincée)
+  if (narrow && opacity > 0 && Math.abs(d) > 0.55) opacity *= 0.35
   setLane(el, side, 'inner')
   gsap.set(el, {
     left: '50%',
     right: 'auto',
-    top: '42%',
+    top: narrow ? '58%' : '42%',
     bottom: 'auto',
     xPercent: narrow ? -50 : side === 'left' ? -100 : 0,
     yPercent: -50,
@@ -163,11 +165,13 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
         else last.addEventListener('loadedmetadata', jump, { once: true })
         gsap.set(last, { autoAlpha: 1 })
       }
-      if (nameEl) gsap.set(nameEl, { autoAlpha: 1 })
+      if (nameWrap) gsap.set(nameWrap, { autoAlpha: 1 })
+      else if (nameEl) gsap.set(nameEl, { autoAlpha: 1 })
       notes.forEach((el) => gsap.set(el, { autoAlpha: 0 }))
       if (askEl) {
-        gsap.set(askEl, { autoAlpha: 1 })
-        askEl.classList.add('is-live')
+        gsap.set(askEl, { autoAlpha: 1, clearProps: 'transform' })
+        askEl.classList.add('is-live', 'is-center')
+        askEl.classList.remove('is-left', 'is-right')
       }
       return undefined
     }
@@ -190,7 +194,8 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
     clips.forEach((clip) => gsap.set(clip.el, { autoAlpha: 0 }))
     if (introEl) gsap.set(introEl, { autoAlpha: 1 })
     notes.forEach((el) => gsap.set(el, { autoAlpha: 0 }))
-    if (nameEl) gsap.set(nameEl, { autoAlpha: 0 })
+    if (nameWrap) gsap.set(nameWrap, { autoAlpha: 0 })
+    else if (nameEl) gsap.set(nameEl, { autoAlpha: 0 })
     if (askEl) {
       gsap.set(askEl, { autoAlpha: 0 })
       askEl.classList.remove('is-live')
@@ -236,33 +241,50 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
     }
 
     const applyFrame = (p, live) => {
-      const lane = copyLane(p)
-      if (nameEl) {
-        if (!live) {
-          gsap.set(nameEl, { autoAlpha: 0 })
+      const compact = window.matchMedia('(max-width: 1100px), (max-height: 820px)').matches
+      const lane = compact ? 'center' : copyLane(p)
+      const askShow = live ? Math.min(1, Math.max(0, (p - 0.78) / 0.1)) : 0
+      const scrubClear = askShow > 0.08
+      const pin = root.querySelector('.hero-pin')
+      pin?.classList.toggle('is-asking', scrubClear)
+
+      if (nameWrap) {
+        setLane(nameWrap, compact ? 'left' : copyLane(p))
+        if (!live || scrubClear) {
+          gsap.set(nameWrap, { autoAlpha: 0 })
         } else {
+          const hold = p < 0.2 ? 1 : Math.max(0, 1 - (p - 0.2) / 0.1)
+          gsap.set(nameWrap, { autoAlpha: hold })
+        }
+      } else if (nameEl) {
+        if (!live || scrubClear) gsap.set(nameEl, { autoAlpha: 0 })
+        else {
           const hold = p < 0.2 ? 1 : Math.max(0, 1 - (p - 0.2) / 0.1)
           gsap.set(nameEl, { autoAlpha: hold })
         }
       }
-      if (nameWrap) setLane(nameWrap, lane)
-      notes.forEach((el) => setDepthNote(el, p, live && p < 0.8))
+
+      if (hallEl) gsap.set(hallEl, { autoAlpha: live && !scrubClear ? 1 : 0 })
+      notes.forEach((el) => setDepthNote(el, p, live && !scrubClear && p < 0.78))
       if (askEl) {
-        const show = live ? Math.min(1, Math.max(0, (p - 0.8) / 0.08)) : 0
         const sticker = askEl.querySelector('.ask-sticker')
-        setLane(askEl, lane, 'end')
-        gsap.set(askEl, { autoAlpha: show })
+        askEl.classList.toggle('is-left', lane === 'left')
+        askEl.classList.toggle('is-right', lane === 'right')
+        askEl.classList.toggle('is-center', lane === 'center')
+        askEl.style.textAlign = lane === 'right' ? 'right' : 'left'
+        gsap.set(askEl, { autoAlpha: askShow, x: 0, y: 0 })
         if (sticker) {
-          const peel = show * show
+          const peel = askShow * askShow
+          const mobileScale = compact ? 0.84 + peel * 0.1 : 0.9 + peel * 0.1
           gsap.set(sticker, {
-            rotation: -8 + peel * 5.5,
-            scale: 0.9 + peel * 0.1,
+            rotation: compact ? -3 + peel * 2.5 : -8 + peel * 5.5,
+            scale: mobileScale,
             transformOrigin: '50% 18%',
             force3D: true,
           })
         }
-        askEl.classList.toggle('is-live', show > 0.55)
-        setStickerFloat(show > 0.55)
+        askEl.classList.toggle('is-live', askShow > 0.35)
+        setStickerFloat(askShow > 0.55 && !compact)
       }
       clips.forEach((clip, i) => {
         if (!live) {
@@ -278,7 +300,8 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
       })
       const hint = root.querySelector('.hero-hint')
       if (hint) {
-        const showHint = live && p < 0.14 ? 1 : live ? Math.max(0, 1 - (p - 0.14) / 0.06) : 0
+        const showHint =
+          live && !scrubClear && p < 0.14 ? 1 : live && !scrubClear ? Math.max(0, 1 - (p - 0.14) / 0.06) : 0
         gsap.set(hint, { autoAlpha: showHint })
       }
     }
@@ -299,7 +322,8 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
           onComplete: () => introEl.pause(),
         })
       }
-      if (nameEl) gsap.set(nameEl, { autoAlpha: 1 })
+      if (nameWrap) gsap.set(nameWrap, { autoAlpha: 1 })
+      else if (nameEl) gsap.set(nameEl, { autoAlpha: 1 })
       applyFrame(0, true)
       lenis.start()
       ScrollTrigger.refresh()
@@ -310,7 +334,8 @@ export function useFilmScrub({ wrap, intro, video, spin, shift, lineA, hall, ask
       const duration = introEl.duration || 1
       const t = introEl.currentTime / duration
       const alpha = Math.min(1, Math.max(0, (t - 0.2) / 0.4))
-      if (nameEl) gsap.set(nameEl, { autoAlpha: alpha })
+      if (nameWrap) gsap.set(nameWrap, { autoAlpha: alpha })
+      else if (nameEl) gsap.set(nameEl, { autoAlpha: alpha })
     }
 
     lenis.stop()
